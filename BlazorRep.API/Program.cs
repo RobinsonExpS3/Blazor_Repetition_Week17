@@ -1,4 +1,6 @@
-using BlazorRep.API.Controllers;
+using BlazorRep.Application.Interfaces;
+using BlazorRep.Infrastructure.Repositories;
+using BlazorRep.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-builder.Services.AddHttpClient<TodoController>();
+builder.Services.AddSingleton<ITodoRepository, TodoRepository>();
 
 var app = builder.Build();
 
@@ -18,6 +19,7 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<CustomLoggingMiddleware>();
 
 app.UseAuthorization();
 

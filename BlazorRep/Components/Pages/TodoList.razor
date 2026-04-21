@@ -1,8 +1,18 @@
 ﻿@page "/todos"
 @using System.Net.Http.Json
 @inject HttpClient Http
+@rendermode InteractiveServer
+
+<h4>Tilføj ny opgave</h4>
+<input @bind="newTitle" placeholder="Opgavetitel" />
+<button @onclick="AddTodo">Tilføj</button>
 
 <h3>Mine Opgaver</h3>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <p style="color: #b91c1c;">@errorMessage</p>
+}
 
 @if(todos == null)
 {
@@ -16,7 +26,7 @@ else
             <li>
                 <input type="checkbox" 
                     checked="@todo.IsCompleted"
-                    @onchange="() => ToggleCompleted(todo)"/>
+                    @onchange="(e) => OnCompletedChanged(todo, e)"/>
                 @todo.Title
                 <button @onclick="() => Delete(todo.Id)">Slet</button>
             </li>
@@ -24,15 +34,12 @@ else
     </ul>
 }
 
-<h4>Tilføj ny opgave</h4>
-<input @bind="newTitle" placeholder="Opgavetitiel"/>
-<button @onclick="AddTodo">Tilføj</button>
-
 @code {
     private const string TodosEndpoint = "api/todo";
 
     private List<TodoItem>? todos;
     private string newTitle = string.Empty;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,14 +48,26 @@ else
 
     private async Task LoadTodos()
     {
-        todos = await Http.GetFromJsonAsync<List<TodoItem>>(TodosEndpoint) ?? new();
+        try
+        {
+            errorMessage = null;
+            todos = await Http.GetFromJsonAsync<List<TodoItem>>(TodosEndpoint) ?? new();
+        }
+        catch (Exception ex)
+        {
+            todos = new();
+            errorMessage = $"Kunne ikke hente opgaver fra API. Tjek at API'et kører, og at ApiBaseUrl er korrekt. ({ex.Message})";
+        }
     }
 
     private async Task AddTodo()
     {
+        errorMessage = null;
+
         var title = newTitle.Trim();
         if(string.IsNullOrWhiteSpace(title))
         {
+            errorMessage = "Skriv en titel før du tilføjer en opgave.";
             return;
         }
 
@@ -59,30 +78,45 @@ else
             CreatedAt = DateTime.UtcNow
         };
 
-        var response = await Http.PostAsJsonAsync(TodosEndpoint, newTodo);
-        if(!response.IsSuccessStatusCode)
+        try
+        {
+            var response = await Http.PostAsJsonAsync(TodosEndpoint, newTodo);
+            if(!response.IsSuccessStatusCode)
+            {
+                var details = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Kunne ikke tilføje opgaven. Status: {(int)response.StatusCode}. {details}";
+                return;
+            }
+
+            var created = await response.Content.ReadFromJsonAsync<TodoItem>();
+            if(created is not null)
+            {
+                todos ??= new();
+                todos.Add(created);
+            }
+            else
+            {
+                await LoadTodos();
+            }
+
+            newTitle = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kunne ikke kontakte API'et. Tjek at API'et kører på korrekt URL. ({ex.Message})";
+        }
+    }
+
+    private async Task OnCompletedChanged(TodoItem todo, ChangeEventArgs e)
+    {
+        var parsed = bool.TryParse(e.Value?.ToString(), out var newValue);
+        if (!parsed)
         {
             return;
         }
 
-        var created = await response.Content.ReadFromJsonAsync<TodoItem>();
-        if(created is not null)
-        {
-            todos ??= new();
-            todos.Add(created);
-        }
-        else
-        {
-            await LoadTodos();
-        }
-
-        newTitle = string.Empty;
-    }
-
-    private async Task ToggleCompleted(TodoItem todo)
-    {
         var original = todo.IsCompleted;
-        todo.IsCompleted = !todo.IsCompleted;
+        todo.IsCompleted = newValue;
 
         var response = await Http.PutAsJsonAsync($"{TodosEndpoint}/{todo.Id}", todo);
         if(!response.IsSuccessStatusCode)

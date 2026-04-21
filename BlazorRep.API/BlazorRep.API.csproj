@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorRep.Domain\BlazorRep.Domain.csproj" />
+    <ProjectReference Include="..\BlazorRep.Infrastructure\BlazorRep.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

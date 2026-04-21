@@ -1,21 +1,26 @@
 ﻿using BlazorRep.Domain.Entities;
+using BlazorRep.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorRep.API.Controllers {
     [ApiController]
     [Route("api/[controller]")]
     public class TodoController : Controller {
-        private static readonly List<TodoItem> Todos = new();
-        private static int _nextId = 1;
+        private readonly ITodoRepository _todoRepository;
+
+        public TodoController(ITodoRepository todoRepository) {
+            _todoRepository = todoRepository;
+        }
 
         [HttpGet]
-        public ActionResult<IEnumerable<TodoItem>> GetAll() {
-            return Ok(Todos.OrderBy(t => t.Id));
+        public async Task<ActionResult<IEnumerable<TodoItem>>> GetAll() {
+            var todos = await _todoRepository.GetAllAsync();
+            return Ok(todos);
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<TodoItem> GetById(int id) {
-            var todo = Todos.FirstOrDefault(t => t.Id == id);
+        public async Task<ActionResult<TodoItem>> GetById(int id) {
+            var todo = await _todoRepository.GetByIdAsync(id);
             if (todo is null) {
                 return NotFound();
             }
@@ -24,21 +29,19 @@ namespace BlazorRep.API.Controllers {
         }
 
         [HttpPost]
-        public ActionResult<TodoItem> Create([FromBody] TodoItem item) {
+        public async Task<ActionResult<TodoItem>> Create([FromBody] TodoItem item) {
             if (string.IsNullOrWhiteSpace(item.Title)) {
                 return BadRequest("Title is required.");
             }
 
-            item.Id = _nextId++;
-            item.CreatedAt = item.CreatedAt == default ? DateTime.UtcNow : item.CreatedAt;
-            Todos.Add(item);
+            var created = await _todoRepository.AddAsync(item);
 
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] TodoItem item) {
-            var existing = Todos.FirstOrDefault(t => t.Id == id);
+        public async Task<IActionResult> Update(int id, [FromBody] TodoItem item) {
+            var existing = await _todoRepository.GetByIdAsync(id);
             if (existing is null) {
                 return NotFound();
             }
@@ -46,18 +49,19 @@ namespace BlazorRep.API.Controllers {
             existing.Title = item.Title;
             existing.IsCompleted = item.IsCompleted;
             existing.CreatedAt = item.CreatedAt == default ? existing.CreatedAt : item.CreatedAt;
+            await _todoRepository.UpdateAsync(existing);
 
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id) {
-            var existing = Todos.FirstOrDefault(t => t.Id == id);
+        public async Task<IActionResult> Delete(int id) {
+            var existing = await _todoRepository.GetByIdAsync(id);
             if (existing is null) {
                 return NotFound();
             }
 
-            Todos.Remove(existing);
+            await _todoRepository.DeleteAsync(id);
             return NoContent();
         }
     }

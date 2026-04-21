@@ -37,6 +37,19 @@
           }
         }
       },
+      "BlazorRep.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "BlazorRep.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/BlazorRep.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BlazorRep.Application.dll": {}
+        }
+      },
       "BlazorRep.Domain/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -45,6 +58,20 @@
         },
         "runtime": {
           "bin/placeholder/BlazorRep.Domain.dll": {}
+        }
+      },
+      "BlazorRep.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "BlazorRep.Application": "1.0.0",
+          "BlazorRep.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/BlazorRep.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BlazorRep.Infrastructure.dll": {}
         }
       }
     }
@@ -86,15 +113,26 @@
         "microsoft.openapi.nuspec"
       ]
     },
+    "BlazorRep.Application/1.0.0": {
+      "type": "project",
+      "path": "../BlazorRep.Application/BlazorRep.Application.csproj",
+      "msbuildProject": "../BlazorRep.Application/BlazorRep.Application.csproj"
+    },
     "BlazorRep.Domain/1.0.0": {
       "type": "project",
       "path": "../BlazorRep.Domain/BlazorRep.Domain.csproj",
       "msbuildProject": "../BlazorRep.Domain/BlazorRep.Domain.csproj"
+    },
+    "BlazorRep.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../BlazorRep.Infrastructure/BlazorRep.Infrastructure.csproj",
+      "msbuildProject": "../BlazorRep.Infrastructure/BlazorRep.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
       "BlazorRep.Domain >= 1.0.0",
+      "BlazorRep.Infrastructure >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 10.0.2"
     ]
   },
@@ -133,6 +171,9 @@
           "projectReferences": {
             "D:\\Projects_3_Semester\\Blazor_Repetition\\BlazorRep\\Blazor_Repetition_Week17\\BlazorRep.Domain\\BlazorRep.Domain.csproj": {
               "projectPath": "D:\\Projects_3_Semester\\Blazor_Repetition\\BlazorRep\\Blazor_Repetition_Week17\\BlazorRep.Domain\\BlazorRep.Domain.csproj"
+            },
+            "D:\\Projects_3_Semester\\Blazor_Repetition\\BlazorRep\\Blazor_Repetition_Week17\\BlazorRep.Infrastructure\\BlazorRep.Infrastructure.csproj": {
+              "projectPath": "D:\\Projects_3_Semester\\Blazor_Repetition\\BlazorRep\\Blazor_Repetition_Week17\\BlazorRep.Infrastructure\\BlazorRep.Infrastructure.csproj"
             }
           }
         }
