@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="BlazorRep.API/BlazorRep.API.csproj" />
+  <Project Path="BlazorRep.Application/BlazorRep.Application.csproj" />
+  <Project Path="BlazorRep.Domain/BlazorRep.Domain.csproj" />
+  <Project Path="BlazorRep.Infrastructure/BlazorRep.Infrastructure.csproj" />
+  <Project Path="BlazorRep/BlazorRep.csproj" />
+</Solution>

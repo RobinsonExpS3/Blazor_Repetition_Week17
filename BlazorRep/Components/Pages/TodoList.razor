@@ -1,0 +1,115 @@
+﻿@page "/todos"
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<h3>Mine Opgaver</h3>
+
+@if(todos == null)
+{
+    <p>Henter opgaver...</p>
+}
+else 
+{
+    <ul>
+        @foreach(var todo in todos)
+        {
+            <li>
+                <input type="checkbox" 
+                    checked="@todo.IsCompleted"
+                    @onchange="() => ToggleCompleted(todo)"/>
+                @todo.Title
+                <button @onclick="() => Delete(todo.Id)">Slet</button>
+            </li>
+        }
+    </ul>
+}
+
+<h4>Tilføj ny opgave</h4>
+<input @bind="newTitle" placeholder="Opgavetitiel"/>
+<button @onclick="AddTodo">Tilføj</button>
+
+@code {
+    private const string TodosEndpoint = "api/todo";
+
+    private List<TodoItem>? todos;
+    private string newTitle = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodos();
+    }
+
+    private async Task LoadTodos()
+    {
+        todos = await Http.GetFromJsonAsync<List<TodoItem>>(TodosEndpoint) ?? new();
+    }
+
+    private async Task AddTodo()
+    {
+        var title = newTitle.Trim();
+        if(string.IsNullOrWhiteSpace(title))
+        {
+            return;
+        }
+
+        var newTodo = new TodoItem 
+        {
+            Title = title,
+            IsCompleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var response = await Http.PostAsJsonAsync(TodosEndpoint, newTodo);
+        if(!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var created = await response.Content.ReadFromJsonAsync<TodoItem>();
+        if(created is not null)
+        {
+            todos ??= new();
+            todos.Add(created);
+        }
+        else
+        {
+            await LoadTodos();
+        }
+
+        newTitle = string.Empty;
+    }
+
+    private async Task ToggleCompleted(TodoItem todo)
+    {
+        var original = todo.IsCompleted;
+        todo.IsCompleted = !todo.IsCompleted;
+
+        var response = await Http.PutAsJsonAsync($"{TodosEndpoint}/{todo.Id}", todo);
+        if(!response.IsSuccessStatusCode)
+        {
+            todo.IsCompleted = original;
+        }
+    }
+
+    private async Task Delete(int id)
+    {
+        var response = await Http.DeleteAsync($"{TodosEndpoint}/{id}");
+        if(!response.IsSuccessStatusCode || todos is null)
+        {
+            return;
+        }
+
+        var item = todos.FirstOrDefault(t => t.Id == id);
+        if(item is not null)
+        {
+            todos.Remove(item);
+        }
+    }
+
+    private class TodoItem {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public bool IsCompleted { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}
