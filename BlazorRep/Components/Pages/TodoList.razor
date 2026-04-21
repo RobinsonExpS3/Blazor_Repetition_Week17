@@ -7,7 +7,7 @@
 <input @bind="newTitle" placeholder="Opgavetitel" />
 <button @onclick="AddTodo">Tilføj</button>
 
-<h3>Mine Opgaver</h3>
+<h4>Mine Opgaver</h4>
 
 @if (!string.IsNullOrWhiteSpace(errorMessage))
 {
@@ -89,7 +89,7 @@ else
             }
 
             var created = await response.Content.ReadFromJsonAsync<TodoItem>();
-            if(created is not null)
+            if(created != null)
             {
                 todos ??= new();
                 todos.Add(created);

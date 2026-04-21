@@ -21,7 +21,7 @@ namespace BlazorRep.API.Controllers {
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TodoItem>> GetById(int id) {
             var todo = await _todoRepository.GetByIdAsync(id);
-            if (todo is null) {
+            if (todo == null) {
                 return NotFound();
             }
 
@@ -42,7 +42,7 @@ namespace BlazorRep.API.Controllers {
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] TodoItem item) {
             var existing = await _todoRepository.GetByIdAsync(id);
-            if (existing is null) {
+            if (existing == null) {
                 return NotFound();
             }
 
@@ -57,7 +57,7 @@ namespace BlazorRep.API.Controllers {
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id) {
             var existing = await _todoRepository.GetByIdAsync(id);
-            if (existing is null) {
+            if (existing == null) {
                 return NotFound();
             }
 
